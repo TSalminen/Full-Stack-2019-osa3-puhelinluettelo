@@ -6,6 +6,7 @@ const cors = require('cors')
 
 app.use(bodyParser.json())
 app.use(cors())
+app.use(express.static('build'))
 
 //const morganTinyString = ':method :url :status :res[content-length] - :response-time ms'
 //const morganOma = ':method :url :status :res[content-length] - :response-time ms'
