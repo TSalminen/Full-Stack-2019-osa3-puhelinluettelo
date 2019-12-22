@@ -1,8 +1,11 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
+//const mongoose = require('mongoose')
+const Entry = require('./models/entry')
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -11,6 +14,8 @@ app.use(express.static('build'))
 //const morganTinyString = ':method :url :status :res[content-length] - :response-time ms'
 //const morganOma = ':method :url :status :res[content-length] - :response-time ms'
 app.use(morgan('tiny'))
+
+
 
 
 let persons = [
@@ -37,7 +42,7 @@ let persons = [
   ]
 
 
-const testi = () => {
+const getInfo = () => {
   const numberOfPersons = persons.length
   const date = new Date()
   return ( `
@@ -53,24 +58,32 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/persons', (req, res) => {
-  res.json(persons)
-})
+app.get('/api/persons', (request, response) => {
+  Entry.find({}).then(entries => {
+    response.json(entries.map(entry => entry.toJSON()))
+  });
+  // vanha toiminnallisuus
+  // response.json(persons)
+});
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(note => note.id === id)
+app.get('/api/persons/:id', (request, response) => {
+  Entry.findById(Number(request.params.id)).then(entry => {
+    response.json(entry.toJSON())
+  })
 
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+  // const id = Number(request.params.id)
+  // const person = persons.find(note => note.id === id)
+
+  // if (person) {
+  //   response.json(person)
+  // } else {
+  //   response.status(404).end()
+  // }
   
 })
 
 app.get('/info', (req, res) => {
-  res.send(testi())
+  res.send(getInfo())
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -81,29 +94,38 @@ app.delete('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
-  const person = request.body
+  const body = request.body
 
-  if (!person.name || !person.number) {
+  if (!body.name || !body.number) {
     return response.status(400).json({
       error: 'name or number missing'
     })
-  } else if (persons.find(p => p.name === person.name)) {
+  } else if (persons.find(p => p.name === body.name)) {
     return response.status(400).json({
       error: 'name must be unique'
     })
   }
 
-  const id = Math.floor(Math.random() * Math.floor(100000))
-  person.id = id
+  const entry = new Entry({
+    name: body.name,
+    number: body.number,
+  })
 
-  persons = persons.concat(person)
+  entry.save().then(savedEntry => {
+    response.json(savedEntry.toJSON())
+  })
 
-  response.json(person)
+  // const id = Math.floor(Math.random() * Math.floor(100000))
+  // body.id = id
+
+  // persons = persons.concat(body)
+
+  // response.json(body)
 })
 
 
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
