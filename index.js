@@ -17,40 +17,30 @@ app.use(morgan('tiny'))
 
 
 
+// let persons = [
+//     { 
+//       name: 'Arto Hellas', 
+//       number: '040-123456',
+//       id: 1
+//     },
+//     { 
+//       name: 'Ada Lovelace', 
+//       number: '39-44-5323523',
+//       id: 2
+//     },
+//     { 
+//       name: 'Dan Abramov', 
+//       number: '12-43-234345',
+//       id: 3
+//     },
+//     { 
+//       name: 'Mary Poppendieck', 
+//       number: '39-23-6423122',
+//       id: 4
+//     }
+//   ]
 
-let persons = [
-    { 
-      name: 'Arto Hellas', 
-      number: '040-123456',
-      id: 1
-    },
-    { 
-      name: 'Ada Lovelace', 
-      number: '39-44-5323523',
-      id: 2
-    },
-    { 
-      name: 'Dan Abramov', 
-      number: '12-43-234345',
-      id: 3
-    },
-    { 
-      name: 'Mary Poppendieck', 
-      number: '39-23-6423122',
-      id: 4
-    }
-  ]
 
-
-const getInfo = () => {
-  const numberOfPersons = persons.length
-  const date = new Date()
-  return ( `
-  <div>Phonebook has info for ${numberOfPersons} people</div>
-  <div>${date}</div>
-  `
-  )
-}
 
 app.get('/', (req, res) => {
   morgan(':method :url :status :res[content-length] - :response-time ms')
@@ -67,10 +57,11 @@ app.get('/api/persons', (request, response) => {
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  Entry.findById(Number(request.params.id)).then(entry => {
+  Entry.findById(request.params.id).then(entry => {
     response.json(entry.toJSON())
   })
 
+  // *** Vanhaa toiminnallisuutta ***
   // const id = Number(request.params.id)
   // const person = persons.find(note => note.id === id)
 
@@ -82,12 +73,20 @@ app.get('/api/persons/:id', (request, response) => {
   
 })
 
-app.get('/info', (req, res) => {
-  res.send(getInfo())
+app.get('/info', (request, response) => {
+  Entry.find({}).then(entries => {
+    const numberOfPersons = entries.length
+    const date = new Date()
+    const infoString = `
+      <div>Phonebook has info for ${numberOfPersons} people</div>
+      <div>${date}</div>
+      `
+    response.send(infoString)
+  });
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
+  const id = request.params.id
   persons = persons.filter(person => person.id !== id)
 
   response.status(204).end()
@@ -114,7 +113,8 @@ app.post('/api/persons', (request, response) => {
   entry.save().then(savedEntry => {
     response.json(savedEntry.toJSON())
   })
-
+  
+  // *** Vanhaa toiminnallisuutta ***
   // const id = Math.floor(Math.random() * Math.floor(100000))
   // body.id = id
 

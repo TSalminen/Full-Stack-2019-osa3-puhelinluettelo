@@ -13,6 +13,7 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   })
 
 const entrySchema = new mongoose.Schema({
+  //id: Number,
   name: String,
   number: String,
 })
