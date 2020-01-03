@@ -48,8 +48,9 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>')
 })
 
-app.get('/info', (request, response) => {
-  Entry.find({}).then(entries => {
+app.get('/info', (request, response, next) => {
+  Entry.find({})
+  .then(entries => {
     const numberOfPersons = entries.length
     const date = new Date()
     const infoString = `
@@ -57,18 +58,21 @@ app.get('/info', (request, response) => {
       <div>${date}</div>
       `
     response.send(infoString)
-  });
+  })
+  .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
-  Entry.find({}).then(entries => {
+app.get('/api/persons', (request, response, next) => {
+  Entry.find({})
+  .then(entries => {
     response.json(entries.map(entry => entry.toJSON()))
-  });
+  })
+  .catch(error => next(error))
   // vanha toiminnallisuus
   // response.json(persons)
 });
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Entry.findById(request.params.id)
     .then(entry => {
       if (entry) {
@@ -77,10 +81,7 @@ app.get('/api/persons/:id', (request, response) => {
         response.status(404).end()
       }    
     })
-    .catch(error => {
-      console.log(error);
-      response.status(400).send({ error: 'malformatted id'})
-    })
+    .catch(error => next(error))
 
   // *** Vanhaa toiminnallisuutta ***
   // const id = Number(request.params.id)
@@ -94,14 +95,12 @@ app.get('/api/persons/:id', (request, response) => {
   
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Entry.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end()
     })
-    .catch(error => {
-      console.log(error)
-    })
+    .catch(error => next(error))
 })
 
 // *** Vanhaa toiminnallisuutta ***
@@ -112,7 +111,7 @@ app.delete('/api/persons/:id', (request, response) => {
 //   response.status(204).end()
 // })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
@@ -133,6 +132,7 @@ app.post('/api/persons', (request, response) => {
   entry.save().then(savedEntry => {
     response.json(savedEntry.toJSON())
   })
+  .catch(error => next(error))
   
   // *** Vanhaa toiminnallisuutta ***
   // const id = Math.floor(Math.random() * Math.floor(100000))
@@ -143,6 +143,17 @@ app.post('/api/persons', (request, response) => {
   // response.json(body)
 })
 
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 
 const PORT = process.env.PORT
