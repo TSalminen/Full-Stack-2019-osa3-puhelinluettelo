@@ -7,9 +7,9 @@ const cors = require('cors')
 //const mongoose = require('mongoose')
 const Entry = require('./models/entry')
 
+app.use(express.static('build'))
 app.use(bodyParser.json())
 app.use(cors())
-app.use(express.static('build'))
 
 //const morganTinyString = ':method :url :status :res[content-length] - :response-time ms'
 //const morganOma = ':method :url :status :res[content-length] - :response-time ms'
@@ -48,6 +48,18 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>')
 })
 
+app.get('/info', (request, response) => {
+  Entry.find({}).then(entries => {
+    const numberOfPersons = entries.length
+    const date = new Date()
+    const infoString = `
+      <div>Phonebook has info for ${numberOfPersons} people</div>
+      <div>${date}</div>
+      `
+    response.send(infoString)
+  });
+})
+
 app.get('/api/persons', (request, response) => {
   Entry.find({}).then(entries => {
     response.json(entries.map(entry => entry.toJSON()))
@@ -57,9 +69,18 @@ app.get('/api/persons', (request, response) => {
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  Entry.findById(request.params.id).then(entry => {
-    response.json(entry.toJSON())
-  })
+  Entry.findById(request.params.id)
+    .then(entry => {
+      if (entry) {
+        response.json(entry.toJSON())
+      } else {
+        response.status(404).end()
+      }    
+    })
+    .catch(error => {
+      console.log(error);
+      response.status(400).send({ error: 'malformatted id'})
+    })
 
   // *** Vanhaa toiminnallisuutta ***
   // const id = Number(request.params.id)
@@ -73,24 +94,23 @@ app.get('/api/persons/:id', (request, response) => {
   
 })
 
-app.get('/info', (request, response) => {
-  Entry.find({}).then(entries => {
-    const numberOfPersons = entries.length
-    const date = new Date()
-    const infoString = `
-      <div>Phonebook has info for ${numberOfPersons} people</div>
-      <div>${date}</div>
-      `
-    response.send(infoString)
-  });
-})
-
 app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()
+  Entry.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => {
+      console.log(error)
+    })
 })
+
+// *** Vanhaa toiminnallisuutta ***
+// app.delete('/api/persons/:id', (request, response) => {
+//   const id = request.params.id
+//   persons = persons.filter(person => person.id !== id)
+
+//   response.status(204).end()
+// })
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
