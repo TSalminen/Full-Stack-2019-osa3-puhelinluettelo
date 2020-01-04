@@ -68,8 +68,6 @@ app.get('/api/persons', (request, response, next) => {
     response.json(entries.map(entry => entry.toJSON()))
   })
   .catch(error => next(error))
-  // vanha toiminnallisuus
-  // response.json(persons)
 });
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -82,16 +80,6 @@ app.get('/api/persons/:id', (request, response, next) => {
       }    
     })
     .catch(error => next(error))
-
-  // *** Vanhaa toiminnallisuutta ***
-  // const id = Number(request.params.id)
-  // const person = persons.find(note => note.id === id)
-
-  // if (person) {
-  //   response.json(person)
-  // } else {
-  //   response.status(404).end()
-  // }
   
 })
 
@@ -103,44 +91,19 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// *** Vanhaa toiminnallisuutta ***
-// app.delete('/api/persons/:id', (request, response) => {
-//   const id = request.params.id
-//   persons = persons.filter(person => person.id !== id)
-
-//   response.status(204).end()
-// })
-
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
-
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'name or number missing'
-    })
-  } else if (persons.find(p => p.name === body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
 
   const entry = new Entry({
     name: body.name,
     number: body.number,
   })
 
-  entry.save().then(savedEntry => {
-    response.json(savedEntry.toJSON())
-  })
-  .catch(error => next(error))
-  
-  // *** Vanhaa toiminnallisuutta ***
-  // const id = Math.floor(Math.random() * Math.floor(100000))
-  // body.id = id
-
-  // persons = persons.concat(body)
-
-  // response.json(body)
+  entry.save()
+    .then(savedEntry => {
+      response.json(savedEntry.toJSON())
+    })
+    .catch(error => next(error))
 })
 
 const errorHandler = (error, request, response, next) => {
@@ -148,7 +111,9 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
-  }
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  } 
 
   next(error)
 }
