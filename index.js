@@ -16,23 +16,23 @@ app.use(cors())
 app.use(morgan('tiny'))
 
 // let persons = [
-//     { 
-//       name: 'Arto Hellas', 
+//     {
+//       name: 'Arto Hellas',
 //       number: '040-123456',
 //       id: 1
 //     },
-//     { 
-//       name: 'Ada Lovelace', 
+//     {
+//       name: 'Ada Lovelace',
 //       number: '39-44-5323523',
 //       id: 2
 //     },
-//     { 
-//       name: 'Dan Abramov', 
+//     {
+//       name: 'Dan Abramov',
 //       number: '12-43-234345',
 //       id: 3
 //     },
-//     { 
-//       name: 'Mary Poppendieck', 
+//     {
+//       name: 'Mary Poppendieck',
 //       number: '39-23-6423122',
 //       id: 4
 //     }
@@ -48,25 +48,25 @@ app.get('/', (req, res) => {
 
 app.get('/info', (request, response, next) => {
   Entry.find({})
-  .then(entries => {
-    const numberOfPersons = entries.length
-    const date = new Date()
-    const infoString = `
-      <div>Phonebook has info for ${numberOfPersons} people</div>
-      <div>${date}</div>
-      `
-    response.send(infoString)
-  })
-  .catch(error => next(error))
+    .then(entries => {
+      const numberOfPersons = entries.length
+      const date = new Date()
+      const infoString = `
+        <div>Phonebook has info for ${numberOfPersons} people</div>
+        <div>${date}</div>
+        `
+      response.send(infoString)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons', (request, response, next) => {
   Entry.find({})
-  .then(entries => {
-    response.json(entries.map(entry => entry.toJSON()))
-  })
-  .catch(error => next(error))
-});
+    .then(entries => {
+      response.json(entries.map(entry => entry.toJSON()))
+    })
+    .catch(error => next(error))
+})
 
 app.get('/api/persons/:id', (request, response, next) => {
   Entry.findById(request.params.id)
@@ -75,10 +75,9 @@ app.get('/api/persons/:id', (request, response, next) => {
         response.json(entry.toJSON())
       } else {
         response.status(404).end()
-      }    
+      }
     })
     .catch(error => next(error))
-  
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -107,7 +106,7 @@ app.post('/api/persons', (request, response, next) => {
 const errorHandler = (error, request, response, next) => {
   console.log(error.message)
 
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
