@@ -15,7 +15,6 @@ app.use(cors())
 //const morganOma = ':method :url :status :res[content-length] - :response-time ms'
 app.use(morgan('tiny'))
 
-
 // let persons = [
 //     { 
 //       name: 'Arto Hellas', 
